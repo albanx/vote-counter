@@ -1,0 +1,136 @@
+{
+  "regions": [
+    {
+      "id": "region1",
+      "name": "Tirana",
+      "type": "region"
+    },
+    {
+      "id": "region2",
+      "name": "Durrës",
+      "type": "region"
+    },
+    {
+      "id": "region3",
+      "name": "Shkodër",
+      "type": "region"
+    },
+    {
+      "id": "region4",
+      "name": "Vlorë",
+      "type": "region"
+    }
+  ],
+  "cities": [
+    {
+      "id": "city1",
+      "name": "Tirana",
+      "parentId": "region1",
+      "type": "city"
+    },
+    {
+      "id": "city2",
+      "name": "Kamëz",
+      "parentId": "region1",
+      "type": "city"
+    },
+    {
+      "id": "city3",
+      "name": "Durrës",
+      "parentId": "region2",
+      "type": "city"
+    },
+    {
+      "id": "city4",
+      "name": "Shijak",
+      "parentId": "region2",
+      "type": "city"
+    },
+    {
+      "id": "city5",
+      "name": "Shkodër",
+      "parentId": "region3",
+      "type": "city"
+    },
+    {
+      "id": "city6",
+      "name": "Vau i Dejës",
+      "parentId": "region3",
+      "type": "city"
+    },
+    {
+      "id": "city7",
+      "name": "Vlorë",
+      "parentId": "region4",
+      "type": "city"
+    },
+    {
+      "id": "city8",
+      "name": "Himarë",
+      "parentId": "region4",
+      "type": "city"
+    }
+  ],
+  "kzaz": [
+    {
+      "id": "kzaz1",
+      "name": "KZAZ 1",
+      "parentId": "city1",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz2",
+      "name": "KZAZ 2",
+      "parentId": "city1",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz3",
+      "name": "KZAZ 3",
+      "parentId": "city2",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz4",
+      "name": "KZAZ 4",
+      "parentId": "city3",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz5",
+      "name": "KZAZ 5",
+      "parentId": "city3",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz6",
+      "name": "KZAZ 6",
+      "parentId": "city4",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz7",
+      "name": "KZAZ 7",
+      "parentId": "city5",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz8",
+      "name": "KZAZ 8",
+      "parentId": "city6",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz9",
+      "name": "KZAZ 9",
+      "parentId": "city7",
+      "type": "kzaz"
+    },
+    {
+      "id": "kzaz10",
+      "name": "KZAZ 10",
+      "parentId": "city8",
+      "type": "kzaz"
+    }
+  ]
+}
