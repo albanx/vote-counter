@@ -6,11 +6,23 @@ interface LocationState {
   kzaz: string;
 }
 
-const initialState: LocationState = {
-  region: localStorage.getItem('selectedRegion') || '',
-  city: localStorage.getItem('selectedCity') || '',
-  kzaz: localStorage.getItem('selectedKzaz') || '',
+const getInitialState = (): LocationState => {
+  if (typeof window === 'undefined') {
+    return {
+      region: '',
+      city: '',
+      kzaz: ''
+    };
+  }
+  
+  return {
+    region: localStorage.getItem('selectedRegion') || '',
+    city: localStorage.getItem('selectedCity') || '',
+    kzaz: localStorage.getItem('selectedKzaz') || '',
+  };
 };
+
+const initialState: LocationState = getInitialState();
 
 const locationSlice = createSlice({
   name: 'location',
@@ -20,16 +32,22 @@ const locationSlice = createSlice({
       state.region = action.payload;
       state.city = '';
       state.kzaz = '';
-      localStorage.setItem('selectedRegion', action.payload);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedRegion', action.payload);
+      }
     },
     setCity: (state, action: PayloadAction<string>) => {
       state.city = action.payload;
       state.kzaz = '';
-      localStorage.setItem('selectedCity', action.payload);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedCity', action.payload);
+      }
     },
     setKzaz: (state, action: PayloadAction<string>) => {
       state.kzaz = action.payload;
-      localStorage.setItem('selectedKzaz', action.payload);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedKzaz', action.payload);
+      }
     },
   },
 });

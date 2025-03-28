@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import {
   CheckCircleOutline,
-  CancelOutlined,
+  CancelOutlined, 
   ErrorOutline,
   CloudOff,
 } from '@mui/icons-material';
@@ -51,10 +51,19 @@ const VoteCounter = () => {
     
     for (const vote of pendingVotes) {
       try {
-        // In a real app, this would send to Firebase
-        console.log('Syncing vote:', vote);
-        
-        // Mark as synced in IndexedDB
+        const response = await fetch('/api/votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(vote),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to sync vote');
+        }
+
+        // Mark as synced in IndexedDB only if the API call was successful
         await markVoteAsSynced(vote.id);
       } catch (error) {
         console.error('Failed to sync vote:', error);
@@ -77,8 +86,23 @@ const VoteCounter = () => {
     };
 
     if (isOnline) {
-      // In a real app, this would send to Firebase
-      console.log('Sending vote to server:', voteData);
+      try {
+        const response = await fetch('/api/votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(voteData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to record vote');
+        }
+      } catch (error) {
+        console.error('Error saving vote:', error);
+        // Fallback to local storage if API call fails
+        await saveVoteLocally(voteData);
+      }
     } else {
       // Store locally when offline
       await saveVoteLocally(voteData);
@@ -112,8 +136,8 @@ const VoteCounter = () => {
         onClose={handleCloseDisputeDialog}
         voteId={currentVoteId}
       />
-      <Box sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 3 }}>
+      <Box>
+        <Paper elevation={2} sx={{ p: 2 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Numëruesi i Votave
             {!isOnline && (

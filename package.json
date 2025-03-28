@@ -15,11 +15,15 @@
     "@mui/icons-material": "^7.0.0",
     "@mui/material": "^7.0.0",
     "@reduxjs/toolkit": "^2.6.1",
+    "@types/mongoose": "^5.11.96",
+    "@types/ua-parser-js": "^0.7.39",
     "firebase": "^11.5.0",
+    "mongoose": "^8.13.0",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "ua-parser-js": "^2.0.3"
   },
   "devDependencies": {
     "@types/node": "^20",
