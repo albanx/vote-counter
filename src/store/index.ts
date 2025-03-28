@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import votesReducer from './votesSlice';
+import locationReducer from './locationSlice';
 
 const store = configureStore({
   reducer: {
     votes: votesReducer,
+    location: locationReducer,
   },
 });
 

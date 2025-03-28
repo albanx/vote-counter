@@ -25,11 +25,7 @@ const VoteCounter = () => {
   const user = auth.currentUser;
   const dispatch = useDispatch();
   const [isOnline, setIsOnline] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    region: string;
-    city: string;
-    kzaz: string;
-  } | null>(null);
+  const selectedLocation = useSelector((state: RootState) => state.location);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [currentVoteId, setCurrentVoteId] = useState('');
 
@@ -108,9 +104,6 @@ const VoteCounter = () => {
     setDisputeDialogOpen(false);
   };
 
-  const handleLocationSelect = useCallback((location: { region: string; city: string; kzaz: string }) => {
-    setSelectedLocation(location);
-  }, []);
 
   return (
     <Container maxWidth="md">
@@ -135,7 +128,7 @@ const VoteCounter = () => {
           </Typography>
 
           <Box sx={{ my: 4 }}>
-            <LocationSelector onLocationSelect={handleLocationSelect} />
+            <LocationSelector />
           </Box>
           
           {selectedLocation ? (

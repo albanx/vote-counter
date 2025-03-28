@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import locationsData from '../data/locations.json';
+import kzazJsonData from '../data/kzaz.json';
+import { RootState } from '../store';
+import { setRegion, setCity, setKzaz } from '../store/locationSlice';
 import {
   FormControl,
   InputLabel,
@@ -10,69 +14,57 @@ import {
 } from '@mui/material';
 
 interface Location {
+  name: string;
+  country_code?: string;
+  cities: string[];
+}
+
+interface Kzaz {
   id: string;
   name: string;
-  parentId?: string;
-  type: 'region' | 'city' | 'kzaz';
+  parentId: string;
 }
 
-interface LocationSelectorProps {
-  onLocationSelect: (location: { region: string; city: string; kzaz: string }) => void;
-}
+const kzazData: Kzaz[] = kzazJsonData as Kzaz[];
 
-const LocationSelector = ({ onLocationSelect }: LocationSelectorProps) => {
-  const [regions, setRegions] = useState<Location[]>([]);
-  const [cities, setCities] = useState<Location[]>([]);
-  const [kzazs, setKzazs] = useState<Location[]>([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
-  const [selectedKzaz, setSelectedKzaz] = useState('');
+const LocationSelector = () => {
+  const dispatch = useDispatch();
+  const { region, city, kzaz } = useSelector((state: RootState) => state.location);
+  const selectedRegion = locationsData.find(r => r.name === region);
+  const cities = selectedRegion?.cities || [];
+  const kzazs = kzazData;
 
   useEffect(() => {
-    // Load regions from the static data
-    setRegions(locationsData.regions as Location[]);
-  }, []);
-
-  useEffect(() => {
-    if (selectedRegion) {
-      // Filter cities based on selected region
-      const filteredCities = locationsData.cities.filter(
-        city => city.parentId === selectedRegion
-      );
-      setCities(filteredCities as Location[]);
+    // Load saved selections from localStorage on component mount
+    const savedRegionName = localStorage.getItem('selectedRegion');
+    if (savedRegionName) {
+      const region = locationsData.find(r => r.name === savedRegionName);
+      if (region) {
+        dispatch(setRegion(region.name));
+        
+        const savedCity = localStorage.getItem('selectedCity');
+        if (savedCity && region.cities.includes(savedCity)) {
+          dispatch(setCity(savedCity));
+          
+          const savedKzaz = localStorage.getItem('selectedKzaz');
+          if (savedKzaz) {
+            dispatch(setKzaz(savedKzaz));
+          }
+        }
+      }
     }
-  }, [selectedRegion]);
-
-  useEffect(() => {
-    if (selectedCity) {
-      // Filter KZAZs based on selected city
-      const filteredKzazs = locationsData.kzaz.filter(
-        kzaz => kzaz.parentId === selectedCity
-      );
-      setKzazs(filteredKzazs as Location[]);
-    }
-  }, [selectedCity]);
+  }, [dispatch]);
 
   const handleRegionChange = (event: SelectChangeEvent<string>) => {
-    const regionId = event.target.value;
-    setSelectedRegion(regionId);
-    setSelectedCity('');
-    setSelectedKzaz('');
+    dispatch(setRegion(event.target.value));
   };
 
   const handleCityChange = (event: SelectChangeEvent<string>) => {
-    const cityId = event.target.value;
-    setSelectedCity(cityId);
-    setSelectedKzaz('');
+    dispatch(setCity(event.target.value));
   };
 
   const handleKzazChange = (event: SelectChangeEvent<string>) => {
-    const kzazId = event.target.value;
-    setSelectedKzaz(kzazId);
-    const region = regions.find(r => r.id === selectedRegion)?.name || '';
-    const city = cities.find(c => c.id === selectedCity)?.name || '';
-    const kzaz = kzazs.find(k => k.id === kzazId)?.name || '';
-    onLocationSelect({ region, city, kzaz });
+    dispatch(setKzaz(event.target.value));
   };
 
   return (
@@ -81,26 +73,26 @@ const LocationSelector = ({ onLocationSelect }: LocationSelectorProps) => {
         <InputLabel id="region-label">Rajoni</InputLabel>
         <Select
           labelId="region-label"
-          value={selectedRegion}
+          value={region}
           onChange={handleRegionChange}
           label="Rajoni"
         >
           <MenuItem value="">
             <em>Zgjidhni Rajonin</em>
           </MenuItem>
-          {regions.map(region => (
-            <MenuItem key={region.id} value={region.id}>
+          {locationsData.map(region => (
+            <MenuItem key={region.name} value={region.name}>
               {region.name}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl fullWidth disabled={!selectedRegion}>
+      <FormControl fullWidth disabled={!region}>
         <InputLabel id="city-label">Qyteti</InputLabel>
         <Select
           labelId="city-label"
-          value={selectedCity}
+          value={city}
           onChange={handleCityChange}
           label="Qyteti"
         >
@@ -108,18 +100,18 @@ const LocationSelector = ({ onLocationSelect }: LocationSelectorProps) => {
             <em>Zgjidhni Qytetin</em>
           </MenuItem>
           {cities.map(city => (
-            <MenuItem key={city.id} value={city.id}>
-              {city.name}
+            <MenuItem key={city} value={city}>
+              {city}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl fullWidth disabled={!selectedCity}>
+      <FormControl fullWidth disabled={!city}>
         <InputLabel id="kzaz-label">KZAZ</InputLabel>
         <Select
           labelId="kzaz-label"
-          value={selectedKzaz}
+          value={kzaz}
           onChange={handleKzazChange}
           label="KZAZ"
         >

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import {
   Container,
   Box,
@@ -11,6 +12,7 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  Divider,
 } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 
@@ -43,6 +45,20 @@ const Login = () => {
       router.push('/');
     } catch (err) {
       setError('Email ose fjalëkalimi i pavlefshëm');
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      router.push('/');
+    } catch (err) {
+      setError('Hyrja me Google dështoi. Ju lutemi provoni përsëri.');
       setLoading(false);
     }
   };
@@ -130,6 +146,50 @@ const Login = () => {
             >
               {loading ? <CircularProgress size={24} /> : 'Hyrje'}
             </Button>
+            <Divider sx={{ mt: 2, mb: 2 }}>OSE</Divider>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              sx={{ 
+                mt: 1,
+                mb: 2,
+                backgroundColor: '#fff',
+                color: '#757575',
+                border: '1px solid #ddd',
+                textTransform: 'none',
+                fontSize: '16px',
+                '&:hover': {
+                  backgroundColor: '#f8f8f8',
+                  border: '1px solid #ccc'
+                },
+                display: 'flex',
+                gap: 2,
+                height: '40px'
+              }}
+            >
+              <img 
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+                style={{ width: '18px', height: '18px' }}
+              />
+              Vazhdo me Google
+            </Button>
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ display: 'inline' }}>
+                Nuk keni llogari? 
+              </Typography>
+              <Link href="/register" passHref>
+                <Button
+                  component="a"
+                  variant="text"
+                  sx={{ ml: 1 }}
+                >
+                  Regjistrohu
+                </Button>
+              </Link>
+            </Box>
           </Box>
         </Paper>
       </Box>

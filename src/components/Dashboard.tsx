@@ -47,7 +47,7 @@ const Dashboard = () => {
     // For now, we'll generate some sample data based on our locations
     const stats: RegionStats = {};
     
-    locationsData.regions.forEach(region => {
+    locationsData.forEach(region => {
       stats[region.name] = {
         positive: Math.floor(Math.random() * 1000),
         negative: Math.floor(Math.random() * 500),
