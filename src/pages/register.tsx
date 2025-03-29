@@ -66,9 +66,12 @@ const Register = () => {
 
   if (checkingAuth) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
+      <Container>
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
+          <img src="/levizjabashke.svg" alt="Levizja Bashke" style={{ width: '200px', marginBottom: '2rem' }} />
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
@@ -92,20 +95,12 @@ const Register = () => {
             width: '100%',
           }}
         >
-          <Box
-            sx={{
-              backgroundColor: 'primary.main',
-              color: 'white',
-              borderRadius: '50%',
-              padding: 1,
-              marginBottom: 2,
-            }}
-          >
-            <PersonAddOutlined />
+          <Box mb={4} display="flex" flexDirection="column" alignItems="center">
+            <img src="/levizjabashke.svg" alt="Levizja Bashke" style={{ width: '180px', marginBottom: '1.5rem' }} />
+            <Typography component="h1" variant="h5" sx={{ mt: 2 }}>
+              Regjistrim
+            </Typography>
           </Box>
-          <Typography component="h1" variant="h5">
-            Regjistrim
-          </Typography>
           
           {error && (
             <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
@@ -161,7 +156,7 @@ const Register = () => {
             <Button
               fullWidth
               variant="text"
-              onClick={() => router.push('/login')}
+              href="/login"
             >
               Tashmë keni një llogari? Hyni
             </Button>

@@ -65,9 +65,12 @@ const Login = () => {
 
   if (checkingAuth) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
+      <Container>
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
+          <img src="/levizjabashke.svg" alt="Levizja Bashke" style={{ width: '200px', marginBottom: '2rem' }} />
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
@@ -91,20 +94,12 @@ const Login = () => {
             width: '100%',
           }}
         >
-          <Box
-            sx={{
-              backgroundColor: 'primary.main',
-              color: 'white',
-              borderRadius: '50%',
-              padding: 1,
-              marginBottom: 2,
-            }}
-          >
-            <LockOutlined />
+          <Box mb={4} display="flex" flexDirection="column" alignItems="center">
+            <img src="/levizjabashke.svg" alt="Levizja Bashke" style={{ width: '180px', marginBottom: '1.5rem' }} />
+            <Typography component="h1" variant="h5" sx={{ mt: 2 }}>
+              Hyrje në Sistem
+            </Typography>
           </Box>
-          <Typography component="h1" variant="h5">
-            Hyrje në Sistem
-          </Typography>
           
           {error && (
             <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
@@ -180,15 +175,13 @@ const Login = () => {
               <Typography variant="body2" sx={{ display: 'inline' }}>
                 Nuk keni llogari? 
               </Typography>
-              <Link href="/register" passHref>
-                <Button
-                  component="a"
-                  variant="text"
-                  sx={{ ml: 1 }}
-                >
-                  Regjistrohu
-                </Button>
-              </Link>
+              <Button
+                href="/register"
+                variant="text"
+                sx={{ ml: 1 }}
+              >
+                Regjistrohu
+              </Button>
             </Box>
           </Box>
         </Paper>

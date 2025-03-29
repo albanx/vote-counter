@@ -14,12 +14,17 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  AppBar,
+  Toolbar,
+  Button,
 } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
   Warning,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
+import { auth } from '../firebaseConfig';
 import { subscribeToGlobalCounts, subscribeToAllRegionCounts } from '../lib/firebase';
 import locationsData from '../data/locations.json';
 import { Unsubscribe } from 'firebase/firestore';
@@ -113,9 +118,35 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Paneli i Numërimit të Votave
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <img
+            src="/levizjabashke.svg"
+            alt="Levizja Bashke"
+            style={{ height: '40px', marginRight: '1rem' }}
+          />
+          <Typography variant="h4" component="h1">
+            Paneli i Numërimit të Votave
+          </Typography>
+        </Box>
+
+        <AppBar position="static" color="default" elevation={1} sx={{ mb: 3 }}>
+          <Toolbar>
+            <Button href="/" color="inherit">
+              Numërimi
+            </Button>
+            <Button href="/dashboard" color="inherit">
+              Statistikat
+            </Button>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+              color="inherit"
+              onClick={() => auth.signOut()}
+              startIcon={<LogoutIcon />}
+            >
+              Dil
+            </Button>
+          </Toolbar>
+        </AppBar>
 
         <Box sx={{ 
           display: 'grid', 

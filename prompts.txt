@@ -1,0 +1,95 @@
+Project Overview
+The application should have a modern aesthetic with a consistent design system and be implemented using React Material UI components.
+Technical Requirements
+
+Use React and Material UI library for component design
+Create a themable design system using CSS variables in a dedicated CSS file
+Ensure responsive design for all device sizes
+Implement proper accessibility standards
+
+Design Guidelines
+Color Palette
+
+Create a consistent, harmonious color palette with 3-5 primary colors
+Define these colors as CSS variables in a dedicated theme file
+Include variants for each color (light/dark)
+Ensure sufficient contrast ratios (minimum 4.5:1 for normal text, 3:1 for large text)
+Avoid problematic color combinations (gray on white, dark on dark)
+Consider creating both light and dark theme options
+
+Typography
+
+Select a primary sans-serif font for the interface
+Maintain font consistency throughout the application
+Create a clear typographic hierarchy with 3-4 font sizes
+Define font weights and sizes as CSS variables
+
+Navigation Design
+
+Implement a consistent navigation system across the application
+For desktop: Create a horizontal navigation bar at the top of the page
+
+Position logo/app name on the left
+Place primary navigation links (Dashboard, Counter) in the center
+Position user-related actions (Login/Logout) on the right
+
+
+Ensure the current page is visually highlighted in the navigation
+Consider using Material UI's Drawer component for mobile navigation
+
+
+Use subtle visual indicators (underlines, background changes) to show active pages
+Add appropriate spacing between navigation items
+Consider using Material UI's AppBar and Tabs components for clean implementation
+Maintain consistent styling between navigation elements and the rest of the app
+
+UI Components
+Vote Counter
+
+Create visually distinct +1/-1 buttons with appropriate sizing
+Display current vote count prominently
+Consider animated transitions when votes change
+Ensure buttons have appropriate hover/focus/active states
+
+Results Display
+
+Design a clean visualization for vote results
+Consider using simple charts or graphs when appropriate
+Ensure results are easy to read at a glance
+
+Interaction Design
+
+Ensure all interactive elements have clear visual feedback
+For destructive actions, use confirmation dialogs rather than relying solely on color
+Primary actions should be visually prominent, regardless of their semantic meaning
+Secondary actions should be clearly distinguishable but less prominent
+
+Layout and Spacing
+
+Maintain consistent padding and margins throughout
+Use a grid system for alignment
+Create breathing room between elements
+Define spacing variables (4px, 8px, 16px, 24px, 32px, etc.) in CSS
+
+Additional Considerations
+
+Prioritize visual hierarchy based on user needs
+For confirmation dialogs on destructive actions, make the primary action clear
+Include subtle animations for improved user experience
+Consider empty states and error handling in the design
+Ensure navigation is accessible via keyboard shortcuts and screen readers
+
+Design Process Advice
+
+Start with wireframes before adding visual design elements
+Test the design at multiple screen sizes
+Question design decisions that don't feel right
+Maintain consistency in all design elements
+Remember that good design serves user needs first
+
+Deliverables
+
+Complete React component structure using Material UI
+Dedicated theme CSS file with variables for colors, spacing, and typography
+Responsive layouts for desktop, tablet, and mobile views
+Documentation for theme customization
