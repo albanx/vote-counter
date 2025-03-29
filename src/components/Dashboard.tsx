@@ -13,13 +13,16 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
 } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
   Warning,
 } from '@mui/icons-material';
+import { subscribeToGlobalCounts, subscribeToAllRegionCounts } from '../lib/firebase';
 import locationsData from '../data/locations.json';
+import { Unsubscribe } from 'firebase/firestore';
 
 interface VoteCount {
   positive: number;
@@ -31,10 +34,46 @@ interface RegionStats {
   [key: string]: VoteCount;
 }
 
+type SortColumn = 'region' | 'positive' | 'negative' | 'invalid' | 'total';
+type SortDirection = 'asc' | 'desc';
+
 const Dashboard = () => {
-  const [regionStats, setRegionStats] = useState<RegionStats>({});
-  const [loading, setLoading] = useState(false);
-  
+  const [regionStats, setRegionStats] = useState<{ [region: string]: VoteCount }>({});
+  const [globalStats, setGlobalStats] = useState<VoteCount>({ positive: 0, negative: 0, invalid: 0 });
+  const [loading, setLoading] = useState(true);
+  const [orderBy, setOrderBy] = useState<SortColumn>('region');
+  const [order, setOrder] = useState<SortDirection>('asc');
+
+  const handleSort = (column: SortColumn) => {
+    const isAsc = orderBy === column && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(column);
+  };
+
+  const getSortedData = () => {
+    return locationsData.map((location) => {
+      const stats = regionStats[location.name] || {
+        positive: 0,
+        negative: 0,
+        invalid: 0
+      };
+      const total = stats.positive + stats.negative + stats.invalid;
+      return {
+        region: location.name,
+        ...stats,
+        total
+      };
+    }).sort((a, b) => {
+      const multiplier = order === 'asc' ? 1 : -1;
+      
+      if (orderBy === 'region') {
+        return multiplier * a.region.localeCompare(b.region);
+      }
+      
+      return multiplier * (a[orderBy] - b[orderBy]);
+    });
+  };
+
   const totalVotes = useSelector((state: RootState) => ({
     positive: (state.votes as any).positive,
     negative: (state.votes as any).negative,
@@ -43,20 +82,23 @@ const Dashboard = () => {
   }));
 
   useEffect(() => {
-    // In a real app, this would fetch from Firebase
-    // For now, we'll generate some sample data based on our locations
-    const stats: RegionStats = {};
-    
-    locationsData.forEach(region => {
-      stats[region.name] = {
-        positive: Math.floor(Math.random() * 1000),
-        negative: Math.floor(Math.random() * 500),
-        invalid: Math.floor(Math.random() * 100),
-      };
+    setLoading(true);
+
+    // Subscribe to global and region counts
+    const globalUnsubscribe = subscribeToGlobalCounts((counts) => {
+      setGlobalStats(counts);
     });
-    
-    setRegionStats(stats);
-    setLoading(false);
+
+    const regionsUnsubscribe = subscribeToAllRegionCounts((counts) => {
+      setRegionStats(counts);
+      setLoading(false);
+    });
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      globalUnsubscribe();
+      regionsUnsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -67,12 +109,7 @@ const Dashboard = () => {
     );
   }
 
-  const totalByType = {
-    positive: Object.values(regionStats).reduce((sum, region) => sum + region.positive, 0),
-    negative: Object.values(regionStats).reduce((sum, region) => sum + region.negative, 0),
-    invalid: Object.values(regionStats).reduce((sum, region) => sum + region.invalid, 0),
-  };
-
+  // We'll use the global stats from Firestore for the totals
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
@@ -89,19 +126,19 @@ const Dashboard = () => {
           <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'success.light', color: 'white' }}>
             <TrendingUp sx={{ fontSize: 40 }} />
             <Typography variant="h6">Vota të Vlefshme</Typography>
-            <Typography variant="h3">{totalByType.positive}</Typography>
+            <Typography variant="h3">{globalStats.positive}</Typography>
           </Paper>
           
           <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'error.light', color: 'white' }}>
             <TrendingDown sx={{ fontSize: 40 }} />
             <Typography variant="h6">Vota të Pavlefshme</Typography>
-            <Typography variant="h3">{totalByType.negative}</Typography>
+            <Typography variant="h3">{globalStats.negative}</Typography>
           </Paper>
           
           <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'warning.light', color: 'white' }}>
             <Warning sx={{ fontSize: 40 }} />
             <Typography variant="h6">Vota të Kontestuara</Typography>
-            <Typography variant="h3">{totalByType.invalid}</Typography>
+            <Typography variant="h3">{globalStats.invalid}</Typography>
           </Paper>
         </Box>
 
@@ -110,26 +147,63 @@ const Dashboard = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Rajoni</strong></TableCell>
-                  <TableCell align="right"><strong>Vota të Vlefshme</strong></TableCell>
-                  <TableCell align="right"><strong>Vota të Pavlefshme</strong></TableCell>
-                  <TableCell align="right"><strong>Vota të Kontestuara</strong></TableCell>
-                  <TableCell align="right"><strong>Totali</strong></TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'region'}
+                      direction={order}
+                      onClick={() => handleSort('region')}
+                    >
+                      <strong>Rajoni</strong>
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'positive'}
+                      direction={order}
+                      onClick={() => handleSort('positive')}
+                    >
+                      <strong>Vota të Vlefshme</strong>
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'negative'}
+                      direction={order}
+                      onClick={() => handleSort('negative')}
+                    >
+                      <strong>Vota të Pavlefshme</strong>
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'invalid'}
+                      direction={order}
+                      onClick={() => handleSort('invalid')}
+                    >
+                      <strong>Vota të Kontestuara</strong>
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'total'}
+                      direction={order}
+                      onClick={() => handleSort('total')}
+                    >
+                      <strong>Totali</strong>
+                    </TableSortLabel>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.entries(regionStats).map(([region, stats]) => {
-                  const total = stats.positive + stats.negative + stats.invalid;
-                  return (
-                    <TableRow key={region}>
-                      <TableCell component="th" scope="row">{region}</TableCell>
-                      <TableCell align="right">{stats.positive}</TableCell>
-                      <TableCell align="right">{stats.negative}</TableCell>
-                      <TableCell align="right">{stats.invalid}</TableCell>
-                      <TableCell align="right"><strong>{total}</strong></TableCell>
-                    </TableRow>
-                  );
-                })}
+                {getSortedData().map((row) => (
+                  <TableRow key={row.region}>
+                    <TableCell component="th" scope="row">{row.region}</TableCell>
+                    <TableCell align="right">{row.positive}</TableCell>
+                    <TableCell align="right">{row.negative}</TableCell>
+                    <TableCell align="right">{row.invalid}</TableCell>
+                    <TableCell align="right"><strong>{row.total}</strong></TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>

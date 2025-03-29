@@ -77,18 +77,37 @@ const VoteCounter = () => {
     };
   }, [selectedLocation, dispatch]);
 
+  const getBrowserInfo = () => {
+    const userAgent = navigator.userAgent;
+    const browserInfo = {
+      userAgent,
+      browser: navigator.userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i)?.[1] || '',
+      platform: navigator.platform
+    };
+    return browserInfo;
+  };
+
   const handleVote = async (type: 'positive' | 'negative' | 'invalid') => {
     if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.kzaz) return;
+
+    const browserInfo = getBrowserInfo();
 
     const voteId = `vote_${Date.now()}`;
     const voteData = {
       id: voteId,
       userId: user.uid,
+      userEmail: user.email || '',
       type,
       timestamp: Timestamp.now(),
       region: selectedLocation.region,
       city: selectedLocation.city,
       kzaz: selectedLocation.kzaz,
+      metadata: {
+        userAgent: browserInfo.userAgent,
+        browser: browserInfo.browser,
+        platform: browserInfo.platform,
+        createdBy: user.displayName || user.email || user.uid
+      }
     };
 
     try {
