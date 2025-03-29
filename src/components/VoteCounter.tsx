@@ -1,9 +1,17 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { incrementPositive, incrementNegative, incrementInvalid } from '../store/votesSlice';
+import {
+  incrementPositive,
+  incrementNegative,
+  incrementInvalid,
+  decrementPositive,
+  decrementNegative,
+  decrementInvalid
+} from '../store/votesSlice';
 import { auth } from '../firebaseConfig';
-import { useEffect, useState, useCallback } from 'react';
-import { initDB, saveVoteLocally, getPendingVotes, markVoteAsSynced } from '../utils/indexedDB';
+import { useEffect, useState, useRef } from 'react';
+import { saveVote, decrementVote, subscribeToLocationCounts } from '../lib/firebase';
+import { Timestamp, Unsubscribe } from 'firebase/firestore';
 import LocationSelector from './LocationSelector';
 import DisputeDialog from './DisputeDialog';
 import {
@@ -16,118 +24,116 @@ import {
 } from '@mui/material';
 import {
   CheckCircleOutline,
-  CancelOutlined, 
+  CancelOutlined,
   ErrorOutline,
-  CloudOff,
 } from '@mui/icons-material';
 
 const VoteCounter = () => {
   const user = auth.currentUser;
   const dispatch = useDispatch();
-  const [isOnline, setIsOnline] = useState(true);
   const selectedLocation = useSelector((state: RootState) => state.location);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [currentVoteId, setCurrentVoteId] = useState('');
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
   const positiveVotes = useSelector((state: RootState) => (state.votes as any).positive);
   const negativeVotes = useSelector((state: RootState) => (state.votes as any).negative);
   const invalidVotes = useSelector((state: RootState) => (state.votes as any).invalid);
 
   useEffect(() => {
-    initDB();
-    window.addEventListener('online', syncVotes);
-    window.addEventListener('offline', () => setIsOnline(false));
-    setIsOnline(navigator.onLine);
+    let mounted = true;
 
-    return () => {
-      window.removeEventListener('online', syncVotes);
-      window.removeEventListener('offline', () => setIsOnline(false));
-    };
-  }, []);
-
-  const syncVotes = async () => {
-    setIsOnline(true);
-    const pendingVotes = await getPendingVotes();
-    
-    for (const vote of pendingVotes) {
-      try {
-        const response = await fetch('/api/votes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(vote),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to sync vote');
+    // Subscribe to real-time vote count updates when location changes
+    if (selectedLocation && selectedLocation.region && selectedLocation.city && selectedLocation.kzaz) {
+      subscribeToLocationCounts(
+        selectedLocation.region,
+        selectedLocation.city,
+        selectedLocation.kzaz,
+        (counts) => {
+          if (mounted) {
+            dispatch({ type: 'votes/setVotes', payload: counts });
+          }
         }
-
-        // Mark as synced in IndexedDB only if the API call was successful
-        await markVoteAsSynced(vote.id);
-      } catch (error) {
-        console.error('Failed to sync vote:', error);
-      }
+      ).then(unsubscribe => {
+        if (mounted) {
+          // Store the unsubscribe function
+          unsubscribeRef.current = unsubscribe;
+        } else {
+          // If component unmounted before subscription established, unsubscribe immediately
+          unsubscribe();
+        }
+      }).catch(error => {
+        console.error('Error setting up subscription:', error);
+      });
     }
-  };
+
+    // Cleanup subscription on unmount or location change
+    return () => {
+      mounted = false;
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [selectedLocation, dispatch]);
 
   const handleVote = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation) return;
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.kzaz) return;
 
     const voteId = `vote_${Date.now()}`;
     const voteData = {
       id: voteId,
       userId: user.uid,
       type,
-      timestamp: Date.now(),
+      timestamp: Timestamp.now(),
       region: selectedLocation.region,
       city: selectedLocation.city,
       kzaz: selectedLocation.kzaz,
     };
 
-    if (isOnline) {
-      try {
-        const response = await fetch('/api/votes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(voteData),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to record vote');
-        }
-      } catch (error) {
-        console.error('Error saving vote:', error);
-        // Fallback to local storage if API call fails
-        await saveVoteLocally(voteData);
+    try {
+      // Update Redux store immediately for UI responsiveness
+      if (type === 'positive') dispatch(incrementPositive());
+      if (type === 'negative') dispatch(incrementNegative());
+      if (type === 'invalid') {
+        dispatch(incrementInvalid());
+        setCurrentVoteId(voteId);
+        setDisputeDialogOpen(true);
       }
-    } else {
-      // Store locally when offline
-      await saveVoteLocally(voteData);
-    }
 
-    // Update Redux store
-    if (type === 'positive') dispatch(incrementPositive());
-    if (type === 'negative') dispatch(incrementNegative());
-    if (type === 'invalid') {
-      dispatch(incrementInvalid());
-      // Open dispute dialog for invalid votes
-      setCurrentVoteId(voteId);
-      setDisputeDialogOpen(true);
+      // Save to Firestore
+      await saveVote(voteData);
+    } catch (error) {
+      console.error('Error saving vote:', error);
+      // Redux will be updated by the Firestore subscription
     }
   };
 
-  const handleOpenDisputeDialog = (voteId: string) => {
-    setCurrentVoteId(voteId);
-    setDisputeDialogOpen(true);
+  const handleDecrement = async (type: 'positive' | 'negative' | 'invalid') => {
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.kzaz) return;
+
+    try {
+      // Update Redux store immediately for UI responsiveness
+      if (type === 'positive') dispatch(decrementPositive());
+      if (type === 'negative') dispatch(decrementNegative());
+      if (type === 'invalid') dispatch(decrementInvalid());
+
+      // Update Firestore
+      await decrementVote(
+        type,
+        selectedLocation.region,
+        selectedLocation.city,
+        selectedLocation.kzaz
+      );
+    } catch (error) {
+      console.error('Error decrementing vote:', error);
+      // Redux will be updated by the Firestore subscription
+    }
   };
 
   const handleCloseDisputeDialog = () => {
     setDisputeDialogOpen(false);
   };
-
 
   return (
     <Container maxWidth="md">
@@ -140,22 +146,13 @@ const VoteCounter = () => {
         <Paper elevation={2} sx={{ p: 2 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Numëruesi i Votave
-            {!isOnline && (
-              <Alert
-                icon={<CloudOff />}
-                severity="warning"
-                sx={{ mt: 2 }}
-              >
-                Ju jeni offline - votat do të sinkronizohen kur të ktheheni online
-              </Alert>
-            )}
           </Typography>
 
           <Box sx={{ my: 4 }}>
             <LocationSelector />
           </Box>
           
-          {selectedLocation ? (
+          {selectedLocation?.region && selectedLocation.city && selectedLocation.kzaz ? (
             <>
               <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
                 <Typography variant="h6" gutterBottom>
@@ -208,11 +205,12 @@ const VoteCounter = () => {
             </Alert>
           )}
           
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
-            gap: 3, 
-            mt: 4 
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 3,
+            mt: 4,
+            mb: 2
           }}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="h6">Vota të Vlefshme</Typography>
@@ -226,6 +224,45 @@ const VoteCounter = () => {
               <Typography variant="h6">Vota të Kontestuara</Typography>
               <Typography variant="h4">{invalidVotes}</Typography>
             </Paper>
+          </Box>
+
+          {/* Decrease Buttons */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 3,
+            mt: 3
+          }}>
+            <Button
+              fullWidth
+              size="medium"
+              variant="outlined"
+              color="success"
+              onClick={() => handleDecrement('positive')}
+              sx={{ py: 1 }}
+            >
+              Anulo Votë të Vlefshme (-1)
+            </Button>
+            <Button
+              fullWidth
+              size="medium"
+              variant="outlined"
+              color="error"
+              onClick={() => handleDecrement('negative')}
+              sx={{ py: 1 }}
+            >
+              Anulo Votë të Pavlefshme (-1)
+            </Button>
+            <Button
+              fullWidth
+              size="medium"
+              variant="outlined"
+              color="warning"
+              onClick={() => handleDecrement('invalid')}
+              sx={{ py: 1 }}
+            >
+              Anulo Votë të Kontestuar (-1)
+            </Button>
           </Box>
         </Paper>
       </Box>

@@ -35,6 +35,21 @@ const votesSlice = createSlice({
     incrementInvalid: (state) => {
       state.invalid += 1;
     },
+    decrementPositive: (state) => {
+      if (state.positive > 0) {
+        state.positive -= 1;
+      }
+    },
+    decrementNegative: (state) => {
+      if (state.negative > 0) {
+        state.negative -= 1;
+      }
+    },
+    decrementInvalid: (state) => {
+      if (state.invalid > 0) {
+        state.invalid -= 1;
+      }
+    },
     addDispute: (state, action: PayloadAction<Dispute>) => {
       state.disputes.push(action.payload);
     },
@@ -57,6 +72,9 @@ export const {
   incrementPositive,
   incrementNegative,
   incrementInvalid,
+  decrementPositive,
+  decrementNegative,
+  decrementInvalid,
   addDispute,
   updateDisputeStatus,
   setVotes
