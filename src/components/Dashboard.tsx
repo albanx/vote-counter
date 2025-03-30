@@ -129,25 +129,6 @@ const Dashboard = () => {
           </Typography>
         </Box>
 
-        <AppBar position="static" color="default" elevation={1} sx={{ mb: 3 }}>
-          <Toolbar>
-            <Button href="/" color="inherit">
-              Numërimi
-            </Button>
-            <Button href="/dashboard" color="inherit">
-              Statistikat
-            </Button>
-            <Box sx={{ flexGrow: 1 }} />
-            <Button
-              color="inherit"
-              onClick={() => auth.signOut()}
-              startIcon={<LogoutIcon />}
-            >
-              Dil
-            </Button>
-          </Toolbar>
-        </AppBar>
-
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, 
