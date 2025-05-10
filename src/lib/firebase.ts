@@ -321,6 +321,41 @@ export const subscribeToLocationCounts = (
 };
 
 /**
+ * Get real-time updates for all cities in a region
+ * Uses data converters for type safety and converts Timestamps to serializable values
+ */
+export const subscribeToCityLevelCounts = (
+  region: string,
+  callback: (counts: { [city: string]: VoteCount }) => void
+): Unsubscribe => {
+  // Use converter for type safety
+  const citiesRef = collection(db, `locationCounts/${region}/kzaz`).withConverter(voteCountConverter);
+  
+  return onSnapshot(citiesRef,
+    (snapshot: QuerySnapshot<VoteCount>) => {
+      const allCityCounts: { [city: string]: VoteCount } = {};
+      
+      snapshot.forEach((doc: QueryDocumentSnapshot<VoteCount>) => {
+        const data = doc.data();
+        allCityCounts[doc.id] = {
+          positive: data.positive,
+          negative: data.negative,
+          invalid: data.invalid,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : data.createdAt,
+          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toMillis() : data.updatedAt
+        };
+      });
+      
+      callback(allCityCounts);
+    },
+    (error: Error) => {
+      console.error(`Error listening to city counts for region ${region}:`, error);
+      callback({});
+    }
+  );
+};
+
+/**
  * Get real-time updates for global counts
  * Uses data converters for type safety and converts Timestamps to serializable values for Redux
  */

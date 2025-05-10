@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { auth } from '../firebaseConfig';
+import { Unsubscribe } from 'firebase/firestore';
 import {
   Container,
   Paper,
@@ -15,13 +16,17 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  Collapse,
+  IconButton,
 } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
   TrendingUp,
   TrendingDown,
   Warning,
 } from '@mui/icons-material';
-import { subscribeToGlobalCounts, subscribeToAllRegionCounts } from '../lib/firebase';
+import { subscribeToGlobalCounts, subscribeToAllRegionCounts, subscribeToCityLevelCounts } from '../lib/firebase';
 import locationsData from '../data/kzazv2.json';
 
 interface VoteCount {
@@ -47,9 +52,78 @@ const getAuthorizedEmails = (): string[] => {
   }
 };
 
+interface CityVoteCount extends VoteCount {
+  city: string;
+}
+
+interface RegionRowProps {
+  region: string;
+  stats: VoteCount & { total: number };
+  cityVotes: { [city: string]: VoteCount };
+}
+
+const RegionRow = ({ region, stats, cityVotes }: RegionRowProps) => {
+  const [open, setOpen] = useState(false);
+  const cityData = locationsData.find(loc => loc.name === region)?.cities || [];
+
+  return (
+    <>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+          {region}
+        </TableCell>
+        <TableCell align="right">{stats.positive}</TableCell>
+        <TableCell align="right">{stats.negative}</TableCell>
+        <TableCell align="right"><strong>{stats.total}</strong></TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>KZAZ</TableCell>
+                    <TableCell align="right">Vota të Vlefshme</TableCell>
+                    <TableCell align="right">Vota të Pavlefshme</TableCell>
+                    <TableCell align="right">Totali</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {cityData.map((city) => {
+                    const cityStats = cityVotes[city] || { positive: 0, negative: 0, invalid: 0 };
+                    const total = cityStats.positive + cityStats.negative + cityStats.invalid;
+                    return (
+                      <TableRow key={city}>
+                        <TableCell component="th" scope="row">{city}</TableCell>
+                        <TableCell align="right">{cityStats.positive}</TableCell>
+                        <TableCell align="right">{cityStats.negative}</TableCell>
+                        <TableCell align="right"><strong>{total}</strong></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+};
+
 const Dashboard = () => {
   const [regionStats, setRegionStats] = useState<{ [region: string]: VoteCount }>({});
+  const [cityVotes, setCityVotes] = useState<{ [city: string]: VoteCount }>({});
   const [globalStats, setGlobalStats] = useState<VoteCount>({ positive: 0, negative: 0, invalid: 0 });
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [orderBy, setOrderBy] = useState<SortColumn>('region');
   const [order, setOrder] = useState<SortDirection>('asc');
@@ -99,20 +173,35 @@ const Dashboard = () => {
     if (!isAuthorized) return;
     setLoading(true);
 
-    // Subscribe to global and region counts
-    const globalUnsubscribe = subscribeToGlobalCounts((counts) => {
+    const subscriptions: Unsubscribe[] = [];
+
+    // Subscribe to global counts
+    subscriptions.push(subscribeToGlobalCounts((counts) => {
       setGlobalStats(counts);
+      setLastUpdate(new Date());
+    }));
+
+    // Subscribe to region counts
+    subscriptions.push(subscribeToAllRegionCounts((counts) => {
+      setRegionStats(counts);
+      setLastUpdate(new Date());
+    }));
+
+    // Subscribe to city-level counts for each region
+    locationsData.forEach((location) => {
+      subscriptions.push(subscribeToCityLevelCounts(location.name, (counts) => {
+        setCityVotes(prev => ({
+          ...prev,
+          ...counts
+        }));
+      }));
     });
 
-    const regionsUnsubscribe = subscribeToAllRegionCounts((counts) => {
-      setRegionStats(counts);
-      setLoading(false);
-    });
+    setLoading(false);
 
     // Cleanup subscriptions on unmount
     return () => {
-      globalUnsubscribe();
-      regionsUnsubscribe();
+      subscriptions.forEach(unsubscribe => unsubscribe());
     };
   }, [isAuthorized]);
 
@@ -140,6 +229,11 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Përditësimi i fundit: {lastUpdate?.toLocaleString('sq-AL')}
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
           <img
             src="/levizjabashke.svg"
@@ -221,53 +315,17 @@ const Dashboard = () => {
               </TableHead>
               <TableBody>
                 {getSortedData().map((row) => (
-                  <TableRow key={row.region}>
-                    <TableCell component="th" scope="row">{row.region}</TableCell>
-                    <TableCell align="right">{row.positive}</TableCell>
-                    <TableCell align="right">{row.negative}</TableCell>
-                    <TableCell align="right"><strong>{row.total}</strong></TableCell>
-                  </TableRow>
+                  <RegionRow
+                    key={row.region}
+                    region={row.region}
+                    stats={row}
+                    cityVotes={cityVotes}
+                  />
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
-
-        {totalVotes.disputes.length > 0 && (
-          <Paper sx={{ mt: 4 }}>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={3}>
-                      <Typography variant="h6">Votat e Kontestuara</Typography>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Koha</strong></TableCell>
-                    <TableCell><strong>Komenti</strong></TableCell>
-                    <TableCell><strong>Statusi</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {totalVotes.disputes.map((dispute: any) => (
-                    <TableRow key={dispute.id}>
-                      <TableCell>
-                        {new Date(dispute.timestamp).toLocaleString('sq-AL')}
-                      </TableCell>
-                      <TableCell>{dispute.comment}</TableCell>
-                      <TableCell>
-                        {dispute.status === 'open' && 'Hapur'}
-                        {dispute.status === 'under_review' && 'Në shqyrtim'}
-                        {dispute.status === 'resolved' && 'Zgjidhur'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
       </Box>
     </Container>
   );

@@ -63,7 +63,6 @@ Request Body:
   "timestamp": "number",
   "region": "string",
   "city": "string",
-  "kzaz": "string"
 }
 ```
 
@@ -80,8 +79,7 @@ Retrieves votes with optional filtering.
 
 Query Parameters:
 - `region`: Filter by region
-- `city`: Filter by city
-- `kzaz`: Filter by KZAZ
+- `city`: Filter by city / kzaz
 - `userId`: Filter by user ID
 
 Response:

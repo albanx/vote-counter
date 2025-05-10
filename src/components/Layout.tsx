@@ -39,13 +39,19 @@ const Layout = ({ children, isOffline }: LayoutProps) => {
         }}
       >
         <Container maxWidth="lg">
-          <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} Sistemi i Numërimit të Votave
-            <br /> Mundesuar nga{' '}
-            <a href="https://homezone.al" target="_blank">
-              Homezone.al
-            </a>
-          </Typography>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              © {new Date().getFullYear()} Sistemi i Numërimit të Votave
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Mundësuar dhe krijuar nga:{' '}
+              <Box component="span" sx={{ display: 'inline-flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <a href="https://homezone.al" target="_blank">homezone.al</a>
+                <a href="https://veriflot.al" target="_blank">veriflot.al</a>
+                <a href="https://saturn.al" target="_blank">saturn.al</a>
+              </Box>
+            </Typography>
+          </Box>
         </Container>
       </Box>
     </Box>
