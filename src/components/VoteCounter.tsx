@@ -10,7 +10,7 @@ import {
 } from '../store/votesSlice';
 import { auth } from '../firebaseConfig';
 import { useEffect, useState, useRef } from 'react';
-import { saveVote, decrementVote, subscribeToLocationCounts } from '../lib/firebase';
+import { saveIncrementVote, saveDecrementVote, subscribeToLocationCounts } from '../lib/firebase';
 import { Timestamp, Unsubscribe } from 'firebase/firestore';
 import LocationSelector from './LocationSelector';
 import DisputeDialog from './DisputeDialog';
@@ -21,11 +21,11 @@ import {
   Button,
   Box,
   Alert,
+  TextField,
 } from '@mui/material';
 import {
   CheckCircleOutline,
   CancelOutlined,
-  ErrorOutline,
 } from '@mui/icons-material';
 
 const VoteCounter = () => {
@@ -34,11 +34,11 @@ const VoteCounter = () => {
   const selectedLocation = useSelector((state: RootState) => state.location);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [currentVoteId, setCurrentVoteId] = useState('');
+  const [boxNumber, setBoxNumber] = useState<number | ''>('');
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
   const positiveVotes = useSelector((state: RootState) => (state.votes as any).positive);
   const negativeVotes = useSelector((state: RootState) => (state.votes as any).negative);
-  const invalidVotes = useSelector((state: RootState) => (state.votes as any).invalid);
 
   useEffect(() => {
     let mounted = true;
@@ -87,12 +87,16 @@ const VoteCounter = () => {
   };
 
   const handleVote = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city) return;
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || boxNumber === '') {
+      alert('Ju lutem plotësoni numrin e kutisë së votimit');
+      return;
+    }
 
     const browserInfo = getBrowserInfo();
 
-    const voteId = `vote_${Date.now()}`;
+    const voteId = `vote_${type}_add_${Date.now()}_${boxNumber}`;
     const voteData = {
+      boxNumber: boxNumber+'',
       id: voteId,
       userId: user.uid,
       userEmail: user.email || '',
@@ -119,7 +123,7 @@ const VoteCounter = () => {
       }
 
       // Save to Firestore
-      await saveVote(voteData);
+      await saveIncrementVote(voteData);
     } catch (error) {
       console.error('Error saving vote:', error);
       // Redux will be updated by the Firestore subscription
@@ -129,18 +133,33 @@ const VoteCounter = () => {
   const handleDecrement = async (type: 'positive' | 'negative' | 'invalid') => {
     if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city) return;
 
+    const browserInfo = getBrowserInfo();
+
+    const voteId = `vote_${type}_remove_${Date.now()}_${boxNumber}`;
+    const voteData = {
+      boxNumber: boxNumber+'',
+      id: voteId,
+      userId: user.uid,
+      userEmail: user.email || '',
+      type,
+      timestamp: Timestamp.now(),
+      region: selectedLocation.region,
+      city: selectedLocation.city,
+      metadata: {
+        userAgent: browserInfo.userAgent,
+        browser: browserInfo.browser,
+        platform: browserInfo.platform,
+        createdBy: user.displayName || user.email || user.uid
+      }
+    };
+
     try {
       // Update Redux store immediately for UI responsiveness
       if (type === 'positive') dispatch(decrementPositive());
       if (type === 'negative') dispatch(decrementNegative());
       if (type === 'invalid') dispatch(decrementInvalid());
 
-      // Update Firestore
-      await decrementVote(
-        type,
-        selectedLocation.region,
-        selectedLocation.city,
-      );
+      await saveDecrementVote(voteData);
     } catch (error) {
       console.error('Error decrementing vote:', error);
       // Redux will be updated by the Firestore subscription
@@ -168,6 +187,25 @@ const VoteCounter = () => {
             <LocationSelector />
           </Box>
           
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              type="number"
+              label="Numri i Kutisë"
+              fullWidth
+              value={boxNumber}
+              onChange={(e) => {
+                const val = e.target.value;
+                setBoxNumber(val === '' ? '' : Number(val));
+              }}
+              InputProps={{
+                inputProps: { min: 1 }
+              }}
+              required
+              error={boxNumber === ''}
+              helperText={boxNumber === '' ? 'Ju lutem vendosni numrin e kutisë' : ''}
+            />
+          </Box>
+
           {selectedLocation?.region && selectedLocation.city ? (
             <>
               <Paper sx={{ p: 2, mb: 3 }} variant="outlined">

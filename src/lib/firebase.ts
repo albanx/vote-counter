@@ -20,8 +20,10 @@ import { db } from '../firebaseConfig';
 interface Vote {
   id: string;
   userId: string;
+  boxNumber: string;
   userEmail: string;
   type: 'positive' | 'negative' | 'invalid';
+  subType?: 'incremented' | 'decremented';
   timestamp: Timestamp;
   region: string;
   city: string;
@@ -51,8 +53,10 @@ const voteConverter: FirestoreDataConverter<Vote> = {
     return {
       id: data.id,
       userId: data.userId,
+      boxNumber: data.boxNumber || '',
       userEmail: data.userEmail || '',
       type: data.type,
+      subType: data.subType,
       timestamp: data.timestamp,
       region: data.region,
       city: data.city,
@@ -150,7 +154,7 @@ const initializeCountDocuments = async (region: string, city: string) => {
  * Create a vote and update counts using batch operations
  * This provides better offline support
  */
-export const saveVote = async (vote: Vote) => {
+export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
   const { region, city, userId, type } = vote;
 
   if (!validateLocationParams(region, city)) {
@@ -164,29 +168,25 @@ export const saveVote = async (vote: Vote) => {
 
     // Create a batch
     const batch = writeBatch(db);
-
-    // References with converters
     const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/votes/${vote.id}`).withConverter(voteConverter);
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
-    // Add vote document
     batch.set(voteRef, vote);
 
-    // Update counters
     batch.update(regionCountRef, {
-      [type]: increment(1),
+      [type]: increment(incrementStep),
       updatedAt: serverTimestamp(),
     });
 
     batch.update(locationCountRef, {
-      [type]: increment(1),
+      [type]: increment(incrementStep),
       updatedAt: serverTimestamp(),
     });
 
     batch.update(globalCountRef, {
-      [type]: increment(1),
+      [type]: increment(incrementStep),
       updatedAt: serverTimestamp(),
     });
 
@@ -203,7 +203,8 @@ export const saveVote = async (vote: Vote) => {
  * Decrement vote counts using batch operations
  * This provides better offline support
  */
-export const decrementVote = async (type: 'positive' | 'negative' | 'invalid', region: string, city: string) => {
+export const saveDecrementVote = async (vote: Vote) => {
+  const { region, city, userId, type } = vote;
   if (!validateLocationParams(region, city)) {
     console.error('Invalid location parameters for decrement');
     return false;
@@ -212,7 +213,9 @@ export const decrementVote = async (type: 'positive' | 'negative' | 'invalid', r
   try {
     // Ensure count documents exist
     await initializeCountDocuments(region, city);
+    
     // References with converters
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/votes/${vote.id}`).withConverter(voteConverter);
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
@@ -233,10 +236,12 @@ export const decrementVote = async (type: 'positive' | 'negative' | 'invalid', r
 
     // Only decrement if counts are greater than 0
     if (regionCount > 0) {
+      batch.set(voteRef, vote);
       batch.update(regionCountRef, {
         [type]: increment(-1),
         updatedAt: serverTimestamp(),
       });
+      
       if (locationCount > 0) {
         batch.update(locationCountRef, {
           [type]: increment(-1),
