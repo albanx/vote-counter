@@ -98,8 +98,8 @@ const RegionRow = ({ region, stats, cityVotes }: RegionRowProps) => {
                 </TableHead>
                 <TableBody>
                   {cityData.map((city) => {
-                    const cityStats = cityVotes[city] || { positive: 0, negative: 0, invalid: 0 };
-                    const total = cityStats.positive + cityStats.negative + cityStats.invalid;
+                    const cityStats = cityVotes[city] || { positive: 0, negative: 0};
+                    const total = cityStats.positive + cityStats.negative;
                     return (
                       <TableRow key={city}>
                         <TableCell component="th" scope="row">{city}</TableCell>
@@ -157,13 +157,6 @@ const Dashboard = () => {
       return multiplier * (a[orderBy] - b[orderBy]);
     });
   };
-
-  const totalVotes = useSelector((state: RootState) => ({
-    positive: (state.votes as any).positive,
-    negative: (state.votes as any).negative,
-    invalid: (state.votes as any).invalid,
-    disputes: (state.votes as any).disputes || [],
-  }));
 
   // Get current user and check authorization
   const user = auth.currentUser;

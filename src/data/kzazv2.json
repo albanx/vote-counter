@@ -2,7 +2,7 @@
     {
       "name": "QARKU TIRANE",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - TIRANE",
         "KZAZ 27 - VORE",
         "KZAZ 28 - KAMEZ",
         "KZAZ 29 - PASKUQAN",
@@ -26,11 +26,11 @@
     {
       "name": "QARKU FIER",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - FIER",
         "KZAZ 55 - LUSHNJE 1",
         "KZAZ 56 - LUSHNJE 2",
         "KZAZ 57 - DIVJAKA",
-        "KZAZ 58 - FIER1",
+        "KZAZ 58 - FIER 1",
         "KZAZ 59 - FIER 2",
         "KZAZ 60 - FIER 3",
         "KZAZ 61 - PATOS",
@@ -41,7 +41,7 @@
     {
       "name": "QARKU ELBASAN",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - ELBASAN",
         "KZAZ 45 - PEQIN",
         "KZAZ 46 - BELSH",
         "KZAZ 47 - CERRIK",
@@ -57,7 +57,7 @@
     {
       "name": "QARKU VLORE",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - VLORE",
         "KZAZ 84 - VLORE 1",
         "KZAZ 85 - VLORE 2",
         "KZAZ 86 - VLORE 3",
@@ -73,7 +73,7 @@
     {
       "name": "QARKU DURRES",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - DURRES",
         "KZAZ 20 - KRUJE",
         "KZAZ 21 - SUKTH",
         "KZAZ 22 - DURRES 1",
@@ -86,7 +86,7 @@
     {
       "name": "QARKU SHKODER",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - SHKODER",
         "KZAZ 01 - M.MADHE",
         "KZAZ 02 - SHKODER 1",
         "KZAZ 03 - SHKODER 2",
@@ -100,7 +100,7 @@
     {
       "name": "QARKU KORCE",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - KORCE",
         "KZAZ 70 - POGRADEC",
         "KZAZ 71 - MALIQ",
         "KZAZ 72 - PUSTEC",
@@ -113,7 +113,7 @@
     {
       "name": "QARKU GJIROKASTER",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - GJIROKASTER",
         "KZAZ 77 - PERMET",
         "KZAZ 78 - KELCYRE",
         "KZAZ 79 - MEMALIAJ",
@@ -126,7 +126,7 @@
     {
       "name": "QARKU BERAT",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - BERAT",
         "KZAZ 64 - DIMAL",
         "KZAZ 65 - KUCOVE",
         "KZAZ 66 - BASHKI BERAT",
@@ -138,7 +138,7 @@
     {
       "name": "QARKU LEZHE",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - LEZHE",
         "KZAZ 12 - LEZHA 1",
         "KZAZ 13 - LEZHA 2",
         "KZAZ 14 - MIRDITE",
@@ -148,7 +148,7 @@
     {
       "name": "QARKU DIBER",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - DIBER",
         "KZAZ 16 - MAT",
         "KZAZ 17 - KLOS",
         "KZAZ 18 - BULQIZA",
@@ -158,7 +158,7 @@
     {
       "name": "QARKU KUKES",
       "cities": [
-        "DIASPORA",
+        "DIASPORA - KUKES",
         "KZAZ 09 - TROPOJE",
         "KZAZ 10 - HAS - KRUME",
         "KZAZ 11 - KUKES"
