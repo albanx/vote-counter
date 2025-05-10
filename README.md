@@ -93,7 +93,6 @@ Response:
     "timestamp": "number",
     "region": "string",
     "city": "string",
-    "kzaz": "string",
     "deviceInfo": {
       "ip": "string",
       "userAgent": "string",

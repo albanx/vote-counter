@@ -41,6 +41,10 @@ const Layout = ({ children, isOffline }: LayoutProps) => {
         <Container maxWidth="lg">
           <Typography variant="body2" color="text.secondary" align="center">
             © {new Date().getFullYear()} Sistemi i Numërimit të Votave
+            <br /> Mundesuar nga{' '}
+            <a href="https://homezone.al" target="_blank">
+              Homezone.al
+            </a>
           </Typography>
         </Container>
       </Box>

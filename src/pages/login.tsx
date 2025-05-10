@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import {
   Container,
   Box,
@@ -14,7 +13,6 @@ import {
   CircularProgress,
   Divider,
 } from '@mui/material';
-import { LockOutlined } from '@mui/icons-material';
 
 const Login = () => {
   const [email, setEmail] = useState('');

@@ -1,0 +1,155 @@
+[
+    {
+      "name": "QARKU TIRANE",
+      "cities": [
+        "KZAZ 27 - VORE",
+        "KZAZ 28 - KAMEZ",
+        "KZAZ 29 - PASKUQAN",
+        "KZAZ 30 - KASHAR",
+        "KZAZ 31 - DAJT",
+        "KZAZ 32 - NJ.A 1",
+        "KZAZ 33 - NJ.A 2",
+        "KZAZ 34 - NJ.A 3",
+        "KZAZ 35 - NJ.A 4",
+        "KZAZ 36 - NJ.A 5",
+        "KZAZ 37 - NJ.A 6",
+        "KZAZ 38 - NJ.A 7",
+        "KZAZ 39 - NJ.A 8",
+        "KZAZ 40 - NJ.A 9",
+        "KZAZ 41 - NJ.A 10",
+        "KZAZ 42 - NJ.A 11",
+        "KZAZ 43 - KAVAJE",
+        "KZAZ 44 - RROGOZHINE"
+      ]
+    },
+    {
+      "name": "QARKU FIER",
+      "cities": [
+        "KZAZ 55 - LUSHNJE 1",
+        "KZAZ 56 - LUSHNJE 2",
+        "KZAZ 57 - DIVJAKA",
+        "KZAZ 58 - FIER1",
+        "KZAZ 59 - FIER 2",
+        "KZAZ 60 - FIER 3",
+        "KZAZ 61 - PATOS",
+        "KZAZ 62 - ROSKOVEC",
+        "KZAZ 63 - MALLAKASTER"
+      ]
+    },
+    {
+      "name": "QARKU ELBASAN",
+      "cities": [
+        "KZAZ 45 - PEQIN",
+        "KZAZ 46 - BELSH",
+        "KZAZ 47 - CERRIK",
+        "KZAZ 48 - ELBASAN 1",
+        "KZAZ 49 - ELBASAN 2",
+        "KZAZ 50 - ELBASAN 3",
+        "KZAZ 51 - ELBASAN 4",
+        "KZAZ 52 - GRAMSH",
+        "KZAZ 53 - LIBRAZHD",
+        "KZAZ 54 - PRRENJAS"
+      ]
+    },
+    {
+      "name": "QARKU VLORE",
+      "cities": [
+        "KZAZ 84 - VLORE 1",
+        "KZAZ 85 - VLORE 2",
+        "KZAZ 86 - VLORE 3",
+        "KZAZ 87 - VLORE 4",
+        "KZAZ 88 - SELENICE - KOTE",
+        "KZAZ 89 - HIMARE",
+        "KZAZ 90 - DELVINE",
+        "KZAZ 91 - SARANDE",
+        "KZAZ 92 - FINIQ - LVADHJA",
+        "KZAZ 93 - KONISPOL"
+      ]
+    },
+    {
+      "name": "QARKU DURRES",
+      "cities": [
+        "KZAZ 20 - KRUJE",
+        "KZAZ 21 - SUKTH",
+        "KZAZ 22 - DURRES 1",
+        "KZAZ 23 - DURRES 2",
+        "KZAZ 24 - DURRES 3",
+        "KZAZ 25 - DURRES 4",
+        "KZAZ 26 - SHIJAK"
+      ]
+    },
+    {
+      "name": "QARKU SHKODER",
+      "cities": [
+        "KZAZ 01 - M.MADHE",
+        "KZAZ 02 - SHKODER 1",
+        "KZAZ 03 - SHKODER 2",
+        "KZAZ 04 - SHKODER 2",
+        "KZAZ 05 - SHKODER4",
+        "KZAZ 06 - VAU I DEJES -BUSHAT",
+        "KZAZ 07 - PUKE",
+        "KZAZ 08 - FUSHE ARREZ"
+      ]
+    },
+    {
+      "name": "QARKU KORCE",
+      "cities": [
+        "KZAZ 70 - POGRADEC",
+        "KZAZ 71 - MALIQ",
+        "KZAZ 72 - PUSTEC",
+        "KZAZ 73 - DEVOLL",
+        "KZAZ 74 - KORCE 1",
+        "KZAZ 75 - KORCE 2",
+        "KZAZ 76 - KOLONJE"
+      ]
+    },
+    {
+      "name": "QARKU GJIROKASTER",
+      "cities": [
+        "KZAZ 77 - PERMET",
+        "KZAZ 78 - KELCYRE",
+        "KZAZ 79 - MEMALIAJ",
+        "KZAZ 80 - TEPELENE",
+        "KZAZ 81 - GJIROKASTER",
+        "KZAZ 82 - LIBOHOVE",
+        "KZAZ 83 - DROPULL-GRAPSH"
+      ]
+    },
+    {
+      "name": "QARKU BERAT",
+      "cities": [
+        "KZAZ 64 - DIMAL",
+        "KZAZ 65 - KUCOVE",
+        "KZAZ 66 - BASHKI BERAT",
+        "KZAZ 67 - BERAT F",
+        "KZAZ 68 - POLICAN",
+        "KZAZ 69 - SKRAPAR"
+      ]
+    },
+    {
+      "name": "QARKU LEZHE",
+      "cities": [
+        "KZAZ 12 - LEZHA 1",
+        "KZAZ 13 - LEZHA 2",
+        "KZAZ 14 - MIRDITE",
+        "KZAZ 15 - KURBIN - LAC"
+      ]
+    },
+    {
+      "name": "QARKU DIBER",
+      "cities": [
+        "KZAZ 16 - MAT",
+        "KZAZ 17 - KLOS",
+        "KZAZ 18 - BULQIZA",
+        "KZAZ 19 - PESHKOPI"
+      ]
+    },
+    {
+      "name": "QARKU KUKES",
+      "cities": [
+        "KZAZ 09 - TROPOJE",
+        "KZAZ 10 - HAS - KRUME",
+        "KZAZ 11 - KUKES"
+      ]
+    }
+  ]

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { auth } from '../firebaseConfig';
 import {
   Container,
   Paper,
@@ -14,9 +15,6 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  AppBar,
-  Toolbar,
-  Button,
 } from '@mui/material';
 import {
   TrendingUp,
@@ -24,10 +22,8 @@ import {
   Warning,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { auth } from '../firebaseConfig';
 import { subscribeToGlobalCounts, subscribeToAllRegionCounts } from '../lib/firebase';
-import locationsData from '../data/locations.json';
-import { Unsubscribe } from 'firebase/firestore';
+import locationsData from '../data/kzazv2.json';
 
 interface VoteCount {
   positive: number;
@@ -35,12 +31,22 @@ interface VoteCount {
   invalid: number;
 }
 
-interface RegionStats {
-  [key: string]: VoteCount;
-}
-
 type SortColumn = 'region' | 'positive' | 'negative' | 'invalid' | 'total';
 type SortDirection = 'asc' | 'desc';
+
+// Base64 encoded authorized emails array
+const ENCODED_EMAILS = 'WyJhcmxpbmRfcW9yaTExQHlhaG9vLmNvbSIsImFsYmFucGlyYUB5bWFpbC5jb20iLCJhbGJhbnhAZ21haWwuY29tIl0=';
+
+// Decode the base64 string and parse JSON to get the array
+const getAuthorizedEmails = (): string[] => {
+  try {
+    const decoded = atob(ENCODED_EMAILS);
+    return JSON.parse(decoded);
+  } catch (error) {
+    console.error('Error decoding authorized emails:', error);
+    return [];
+  }
+};
 
 const Dashboard = () => {
   const [regionStats, setRegionStats] = useState<{ [region: string]: VoteCount }>({});
@@ -86,7 +92,12 @@ const Dashboard = () => {
     disputes: (state.votes as any).disputes || [],
   }));
 
+  // Get current user and check authorization
+  const user = auth.currentUser;
+  const isAuthorized = !!user && getAuthorizedEmails().includes(user.email || '');
+
   useEffect(() => {
+    if (!isAuthorized) return;
     setLoading(true);
 
     // Subscribe to global and region counts
@@ -105,6 +116,18 @@ const Dashboard = () => {
       regionsUnsubscribe();
     };
   }, []);
+
+  if (!isAuthorized) {
+    return (
+      <Container maxWidth="lg">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <Typography variant="h5" color="error">
+            Ndal - Ju nuk jeni i autorizuar për të parë këtë faqe
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
 
   if (loading) {
     return (

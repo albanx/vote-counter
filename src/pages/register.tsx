@@ -12,7 +12,6 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { PersonAddOutlined } from '@mui/icons-material';
 
 const Register = () => {
   const [email, setEmail] = useState('');

@@ -44,11 +44,10 @@ const VoteCounter = () => {
     let mounted = true;
 
     // Subscribe to real-time vote count updates when location changes
-    if (selectedLocation && selectedLocation.region && selectedLocation.city && selectedLocation.kzaz) {
+    if (selectedLocation && selectedLocation.region && selectedLocation.city) {
       subscribeToLocationCounts(
         selectedLocation.region,
         selectedLocation.city,
-        selectedLocation.kzaz,
         (counts) => {
           if (mounted) {
             dispatch({ type: 'votes/setVotes', payload: counts });
@@ -88,7 +87,7 @@ const VoteCounter = () => {
   };
 
   const handleVote = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.kzaz) return;
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city) return;
 
     const browserInfo = getBrowserInfo();
 
@@ -101,7 +100,6 @@ const VoteCounter = () => {
       timestamp: Timestamp.now(),
       region: selectedLocation.region,
       city: selectedLocation.city,
-      kzaz: selectedLocation.kzaz,
       metadata: {
         userAgent: browserInfo.userAgent,
         browser: browserInfo.browser,
@@ -129,7 +127,7 @@ const VoteCounter = () => {
   };
 
   const handleDecrement = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.kzaz) return;
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city) return;
 
     try {
       // Update Redux store immediately for UI responsiveness
@@ -142,7 +140,6 @@ const VoteCounter = () => {
         type,
         selectedLocation.region,
         selectedLocation.city,
-        selectedLocation.kzaz
       );
     } catch (error) {
       console.error('Error decrementing vote:', error);
@@ -171,15 +168,14 @@ const VoteCounter = () => {
             <LocationSelector />
           </Box>
           
-          {selectedLocation?.region && selectedLocation.city && selectedLocation.kzaz ? (
+          {selectedLocation?.region && selectedLocation.city ? (
             <>
               <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
                 <Typography variant="h6" gutterBottom>
                   Vendndodhja e Zgjedhur:
                 </Typography>
                 <Typography>Rajoni: {selectedLocation.region}</Typography>
-                <Typography>Qyteti: {selectedLocation.city}</Typography>
-                <Typography>KZAZ: {selectedLocation.kzaz}</Typography>
+                <Typography>KZAZ - Qyteti: {selectedLocation.city}</Typography>
               </Paper>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
