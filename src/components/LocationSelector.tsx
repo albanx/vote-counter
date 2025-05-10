@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import locationsData from '../data/kzazv2.json';
 import { RootState } from '../store';
-import { setRegion, setCity } from '../store/locationSlice';
+import { setRegion, setCity, setBoxNumber } from '../store/locationSlice';
 import {
   FormControl,
   InputLabel,
@@ -10,11 +10,12 @@ import {
   MenuItem,
   Box,
   SelectChangeEvent,
+  TextField
 } from '@mui/material';
 
 const LocationSelector = () => {
   const dispatch = useDispatch();
-  const { region, city } = useSelector((state: RootState) => state.location);
+  const { region, city, boxNumber } = useSelector((state: RootState) => state.location);
   const selectedRegion = locationsData.find(r => r.name === region);
   const cities = selectedRegion?.cities || [];
 
@@ -40,6 +41,11 @@ const LocationSelector = () => {
 
   const handleCityChange = (event: SelectChangeEvent<string>) => {
     dispatch(setCity(event.target.value));
+  };
+
+  const handleBoxNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Value is already a string from TextField
+    dispatch(setBoxNumber(event.target.value));
   };
 
   return (
@@ -80,6 +86,21 @@ const LocationSelector = () => {
             </MenuItem>
           ))}
         </Select>
+      </FormControl>
+      <FormControl fullWidth disabled={!region}>
+        <TextField
+          type="number"
+          label="Numri i Kutisë"
+          fullWidth
+          value={boxNumber}
+          onChange={handleBoxNumberChange}
+          InputProps={{
+            inputProps: { min: 1 }
+          }}
+          required
+          error={boxNumber === ''}
+          helperText={boxNumber === '' ? 'Ju lutem vendosni numrin e kutisë' : ''}
+        />
       </FormControl>
     </Box>
   );

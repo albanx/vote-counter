@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface LocationState {
   region: string;
   city: string;
+  boxNumber: string;
 }
 
 const getInitialState = (): LocationState => {
@@ -10,12 +11,14 @@ const getInitialState = (): LocationState => {
     return {
       region: '',
       city: '',
+      boxNumber: '',
     };
   }
   
   return {
     region: localStorage.getItem('selectedRegion') || '',
     city: localStorage.getItem('selectedCity') || '',
+    boxNumber: localStorage.getItem('boxNumber') || '',
   };
 };
 
@@ -38,8 +41,14 @@ const locationSlice = createSlice({
         localStorage.setItem('selectedCity', action.payload);
       }
     },
+    setBoxNumber: (state, action: PayloadAction<string>) => {
+      state.boxNumber = action.payload;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('boxNumber', action.payload);
+      }
+    },
   },
 });
 
-export const { setRegion, setCity } = locationSlice.actions;
+export const { setRegion, setCity, setBoxNumber } = locationSlice.actions;
 export default locationSlice.reducer;

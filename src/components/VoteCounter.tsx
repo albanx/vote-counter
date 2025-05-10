@@ -10,7 +10,7 @@ import {
 } from '../store/votesSlice';
 import { auth } from '../firebaseConfig';
 import { useEffect, useState, useRef } from 'react';
-import { saveIncrementVote, saveDecrementVote, subscribeToLocationCounts } from '../lib/firebase';
+import { saveIncrementVote, saveDecrementVote, subscribeToLocationBoxCounts } from '../lib/firebase';
 import { Timestamp, Unsubscribe } from 'firebase/firestore';
 import LocationSelector from './LocationSelector';
 import DisputeDialog from './DisputeDialog';
@@ -34,7 +34,6 @@ const VoteCounter = () => {
   const selectedLocation = useSelector((state: RootState) => state.location);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [currentVoteId, setCurrentVoteId] = useState('');
-  const [boxNumber, setBoxNumber] = useState<number | ''>('');
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
   const positiveVotes = useSelector((state: RootState) => (state.votes as any).positive);
@@ -44,10 +43,11 @@ const VoteCounter = () => {
     let mounted = true;
 
     // Subscribe to real-time vote count updates when location changes
-    if (selectedLocation && selectedLocation.region && selectedLocation.city) {
-      subscribeToLocationCounts(
+    if (selectedLocation && selectedLocation.region && selectedLocation.city && selectedLocation.boxNumber) {
+      subscribeToLocationBoxCounts(
         selectedLocation.region,
         selectedLocation.city,
+        selectedLocation.boxNumber,
         (counts) => {
           if (mounted) {
             dispatch({ type: 'votes/setVotes', payload: counts });
@@ -87,16 +87,16 @@ const VoteCounter = () => {
   };
 
   const handleVote = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || boxNumber === '') {
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.boxNumber) {
       alert('Ju lutem plotësoni numrin e kutisë së votimit');
       return;
     }
 
     const browserInfo = getBrowserInfo();
 
-    const voteId = `vote_${type}_add_${Date.now()}_${boxNumber}`;
+    const voteId = `vote_${type}_add_${Date.now()}_${selectedLocation.boxNumber}`;
     const voteData = {
-      boxNumber: boxNumber+'',
+      boxNumber: selectedLocation.boxNumber,
       id: voteId,
       userId: user.uid,
       userEmail: user.email || '',
@@ -131,13 +131,16 @@ const VoteCounter = () => {
   };
 
   const handleDecrement = async (type: 'positive' | 'negative' | 'invalid') => {
-    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city) return;
+    if (!user || !selectedLocation || !selectedLocation.region || !selectedLocation.city || !selectedLocation.boxNumber) {
+      alert('Ju lutem plotësoni numrin e kutisë së votimit');
+      return;
+    }
 
     const browserInfo = getBrowserInfo();
 
-    const voteId = `vote_${type}_remove_${Date.now()}_${boxNumber}`;
+    const voteId = `vote_${type}_remove_${Date.now()}_${selectedLocation.boxNumber}`;
     const voteData = {
-      boxNumber: boxNumber+'',
+      boxNumber: selectedLocation.boxNumber,
       id: voteId,
       userId: user.uid,
       userEmail: user.email || '',
@@ -186,25 +189,6 @@ const VoteCounter = () => {
           <Box sx={{ my: 4 }}>
             <LocationSelector />
           </Box>
-          
-          <Box sx={{ mb: 3 }}>
-            <TextField
-              type="number"
-              label="Numri i Kutisë"
-              fullWidth
-              value={boxNumber}
-              onChange={(e) => {
-                const val = e.target.value;
-                setBoxNumber(val === '' ? '' : Number(val));
-              }}
-              InputProps={{
-                inputProps: { min: 1 }
-              }}
-              required
-              error={boxNumber === ''}
-              helperText={boxNumber === '' ? 'Ju lutem vendosni numrin e kutisë' : ''}
-            />
-          </Box>
 
           {selectedLocation?.region && selectedLocation.city ? (
             <>
@@ -214,6 +198,7 @@ const VoteCounter = () => {
                 </Typography>
                 <Typography>Rajoni: {selectedLocation.region}</Typography>
                 <Typography>KZAZ - Qyteti: {selectedLocation.city}</Typography>
+                <Typography>Kutia: {selectedLocation.boxNumber}</Typography>
               </Paper>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>

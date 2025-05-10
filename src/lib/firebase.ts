@@ -88,16 +88,16 @@ const voteCountConverter: FirestoreDataConverter<VoteCount> = {
 };
 
 // Validate location parameters
-const validateLocationParams = (region?: string, city?: string): boolean => {
-  return Boolean(region && city && region.trim() && city.trim());
+const validateLocationParams = (region?: string, city?: string, boxNumber?:string): boolean => {
+  return Boolean(boxNumber && region && city && region.trim() && city.trim() && boxNumber.trim());
 };
 
 /**
  * Create initial count documents if they don't exist
  * Uses batch operations for better offline support
  */
-const initializeCountDocuments = async (region: string, city: string) => {
-  if (!validateLocationParams(region, city)) {
+const initializeCountDocuments = async (region: string, city: string, boxNumber: string) => {
+  if (!validateLocationParams(region, city, boxNumber)) {
     console.error('Invalid location parameters');
     return false;
   }
@@ -113,7 +113,7 @@ const initializeCountDocuments = async (region: string, city: string) => {
   try {
     // Get references with converters
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
-    const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
+    const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
     // Check if documents exist
@@ -155,27 +155,34 @@ const initializeCountDocuments = async (region: string, city: string) => {
  * This provides better offline support
  */
 export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
-  const { region, city, userId, type } = vote;
+  const { region, city, userId, type, boxNumber } = vote;
 
-  if (!validateLocationParams(region, city)) {
+  if (!validateLocationParams(region, city, boxNumber)) {
     console.error('Invalid location parameters in vote');
     return false;
   }
 
   try {
     // Ensure count documents exist before batch operation
-    await initializeCountDocuments(region, city);
+    await initializeCountDocuments(region, city, vote.boxNumber);
 
     // Create a batch
     const batch = writeBatch(db);
-    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/votes/${vote.id}`).withConverter(voteConverter);
-    const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${vote.boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${vote.boxNumber}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
+    const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
+    // Set vote with incremented subType
     batch.set(voteRef, vote);
 
     batch.update(regionCountRef, {
+      [type]: increment(incrementStep),
+      updatedAt: serverTimestamp(),
+    });
+
+    batch.update(boxCountRef, {
       [type]: increment(incrementStep),
       updatedAt: serverTimestamp(),
     });
@@ -204,30 +211,33 @@ export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
  * This provides better offline support
  */
 export const saveDecrementVote = async (vote: Vote) => {
-  const { region, city, userId, type } = vote;
-  if (!validateLocationParams(region, city)) {
+  const { region, city, userId, type, boxNumber } = vote;
+  if (!validateLocationParams(region, city, boxNumber)) {
     console.error('Invalid location parameters for decrement');
     return false;
   }
 
   try {
     // Ensure count documents exist
-    await initializeCountDocuments(region, city);
+    await initializeCountDocuments(region, city, boxNumber);
     
     // References with converters
-    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/votes/${vote.id}`).withConverter(voteConverter);
-    const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
+    const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
     // Get current counts to check if they're positive
-    const [regionDoc, locationDoc, globalDoc] = await Promise.all([
+    const [regionDoc, locationDoc, globalDoc, boxCountDoc] = await Promise.all([
       getDoc(regionCountRef),
       getDoc(locationCountRef),
       getDoc(globalCountRef),
+      getDoc(boxCountRef),
     ]);
 
     const regionCount = regionDoc.data()?.[type] || 0;
+    const boxCount = boxCountDoc.data()?.[type] || 0;
     const locationCount = locationDoc.data()?.[type] || 0;
     const globalCount = globalDoc.data()?.[type] || 0;
 
@@ -235,13 +245,22 @@ export const saveDecrementVote = async (vote: Vote) => {
     const batch = writeBatch(db);
 
     // Only decrement if counts are greater than 0
-    if (regionCount > 0) {
+    if (boxCount > 0) {
       batch.set(voteRef, vote);
-      batch.update(regionCountRef, {
+      
+      batch.update(boxCountRef, {
         [type]: increment(-1),
         updatedAt: serverTimestamp(),
       });
-      
+
+      if (regionCount > 0) {
+        batch.update(regionCountRef, {
+          [type]: increment(-1),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+
       if (locationCount > 0) {
         batch.update(locationCountRef, {
           [type]: increment(-1),
@@ -270,23 +289,24 @@ export const saveDecrementVote = async (vote: Vote) => {
  * Get real-time updates for location counts
  * Uses data converters for type safety and converts Timestamps to serializable values for Redux
  */
-export const subscribeToLocationCounts = (
+export const subscribeToLocationBoxCounts = (
   region: string,
   city: string,
+  boxNumber: string,
   callback: (counts: VoteCount) => void
 ): Promise<Unsubscribe> => {
   return new Promise((resolve, reject) => {
-    if (!validateLocationParams(region, city)) {
+    if (!validateLocationParams(region, city, boxNumber)) {
       console.error('Invalid location parameters for subscription');
       callback({ positive: 0, negative: 0, invalid: 0 });
       return reject(new Error('Invalid location parameters'));
     }
 
     // Initialize documents before setting up subscription
-    initializeCountDocuments(region, city)
+    initializeCountDocuments(region, city, boxNumber)
       .then(() => {
         // Use converter for type safety
-        const locationRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
+        const locationRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
 
         const unsubscribe = onSnapshot(
           locationRef,
