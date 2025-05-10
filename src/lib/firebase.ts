@@ -113,14 +113,16 @@ const initializeCountDocuments = async (region: string, city: string, boxNumber:
   try {
     // Get references with converters
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
-    const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
+    const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
     // Check if documents exist
-    const [regionDoc, locationDoc, globalDoc] = await Promise.all([
+    const [regionDoc, locationDoc, globalDoc, boxCountDoc] = await Promise.all([
       getDoc(regionCountRef),
       getDoc(locationCountRef),
       getDoc(globalCountRef),
+      getDoc(boxCountRef),
     ]);
 
     // Create a batch for better offline support
@@ -138,8 +140,12 @@ const initializeCountDocuments = async (region: string, city: string, boxNumber:
       batch.set(globalCountRef, initialData);
     }
 
+    if (!boxCountDoc.exists()) {
+      batch.set(boxCountRef, initialData);
+    }
+
     // Only commit if there are changes to make
-    if (!regionDoc.exists() || !locationDoc.exists() || !globalDoc.exists()) {
+    if (!regionDoc.exists() || !locationDoc.exists() || !globalDoc.exists() || !boxCountDoc.exists()) {
       await batch.commit();
     }
 
@@ -168,14 +174,17 @@ export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
 
     // Create a batch
     const batch = writeBatch(db);
-    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${vote.boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
-    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${vote.boxNumber}`).withConverter(voteCountConverter);
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
     // Set vote with incremented subType
-    batch.set(voteRef, vote);
+    batch.set(voteRef, {
+      ...vote,
+      subType: 'incremented'
+    });
 
     batch.update(regionCountRef, {
       [type]: increment(incrementStep),
@@ -246,7 +255,10 @@ export const saveDecrementVote = async (vote: Vote) => {
 
     // Only decrement if counts are greater than 0
     if (boxCount > 0) {
-      batch.set(voteRef, vote);
+      batch.set(voteRef, {
+        ...vote,
+        subType: 'decremented'
+      });
       
       batch.update(boxCountRef, {
         [type]: increment(-1),
