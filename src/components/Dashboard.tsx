@@ -34,7 +34,7 @@ type SortColumn = 'region' | 'positive' | 'negative' | 'invalid' | 'total';
 type SortDirection = 'asc' | 'desc';
 
 // Base64 encoded authorized emails array
-const ENCODED_EMAILS = 'WyJhcmxpbmRfcW9yaTExQHlhaG9vLmNvbSIsImFsYmFucGlyYUB5bWFpbC5jb20iLCJhbGJhbnhAZ21haWwuY29tIl0=';
+const ENCODED_EMAILS = 'WyJhcmxpbmRfcW9yaTExQHlhaG9vLmNvbSIsImFsYmFucGlyYUB5bWFpbC5jb20iLCJhbGJhbnhAZ21haWwuY29tIiwiYWxnZXJ0QHByb3Rvbm1haWwuY29tIl0=';
 
 // Decode the base64 string and parse JSON to get the array
 const getAuthorizedEmails = (): string[] => {
@@ -171,8 +171,8 @@ const Dashboard = () => {
           
           <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'warning.light', color: 'white' }}>
             <Warning sx={{ fontSize: 40 }} />
-            <Typography variant="h6">Vota të Kontestuara</Typography>
-            <Typography variant="h3">{globalStats.invalid}</Typography>
+            <Typography variant="h6">Totali</Typography>
+            <Typography variant="h3">{globalStats.negative+globalStats.positive}</Typography>
           </Paper>
         </Box>
 
@@ -210,15 +210,6 @@ const Dashboard = () => {
                   </TableCell>
                   <TableCell align="right">
                     <TableSortLabel
-                      active={orderBy === 'invalid'}
-                      direction={order}
-                      onClick={() => handleSort('invalid')}
-                    >
-                      <strong>Vota të Kontestuara</strong>
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="right">
-                    <TableSortLabel
                       active={orderBy === 'total'}
                       direction={order}
                       onClick={() => handleSort('total')}
@@ -234,7 +225,6 @@ const Dashboard = () => {
                     <TableCell component="th" scope="row">{row.region}</TableCell>
                     <TableCell align="right">{row.positive}</TableCell>
                     <TableCell align="right">{row.negative}</TableCell>
-                    <TableCell align="right">{row.invalid}</TableCell>
                     <TableCell align="right"><strong>{row.total}</strong></TableCell>
                   </TableRow>
                 ))}

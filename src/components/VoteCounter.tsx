@@ -178,7 +178,7 @@ const VoteCounter = () => {
                 <Typography>KZAZ - Qyteti: {selectedLocation.city}</Typography>
               </Paper>
               
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
                 <Button
                   fullWidth
                   size="large"
@@ -201,17 +201,6 @@ const VoteCounter = () => {
                 >
                   Votë e Pavlefshme
                 </Button>
-                <Button
-                  fullWidth
-                  size="large"
-                  variant="contained"
-                  color="warning"
-                  onClick={() => handleVote('invalid')}
-                  startIcon={<ErrorOutline />}
-                  sx={{ py: 3 }}
-                >
-                  Votë e Kontestuar
-                </Button>
               </Box>
             </>
           ) : (
@@ -222,7 +211,7 @@ const VoteCounter = () => {
           
           <Box sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
             gap: 3,
             mt: 4,
             mb: 2
@@ -235,16 +224,12 @@ const VoteCounter = () => {
               <Typography variant="h6">Vota të Pavlefshme</Typography>
               <Typography variant="h4">{negativeVotes}</Typography>
             </Paper>
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="h6">Vota të Kontestuara</Typography>
-              <Typography variant="h4">{invalidVotes}</Typography>
-            </Paper>
           </Box>
 
           {/* Decrease Buttons */}
           <Box sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
             gap: 3,
             mt: 3
           }}>
@@ -267,16 +252,6 @@ const VoteCounter = () => {
               sx={{ py: 1 }}
             >
               Anulo Votë të Pavlefshme (-1)
-            </Button>
-            <Button
-              fullWidth
-              size="medium"
-              variant="outlined"
-              color="warning"
-              onClick={() => handleDecrement('invalid')}
-              sx={{ py: 1 }}
-            >
-              Anulo Votë të Kontestuar (-1)
             </Button>
           </Box>
         </Paper>

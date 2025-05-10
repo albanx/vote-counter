@@ -2,6 +2,7 @@ import * as React from 'react';
 import { styled, alpha } from '@mui/material/styles';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import Link from 'next/link';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -74,10 +75,7 @@ export default function MainNavBar({ isOffline }: { isOffline?: boolean }) {
                 Numerimi i votave
               </Button>
               <Button variant="text" color="info" size="small" href="/dashboard">
-                Paneli i kontrollit
-              </Button>
-              <Button variant="text" color="info" size="small" href="/komisioner">
-                Lista e komisionerve
+                Statistikat e votave
               </Button>
             </Box>
           </Box>
@@ -135,9 +133,8 @@ export default function MainNavBar({ isOffline }: { isOffline?: boolean }) {
                   </IconButton>
                 </Box>
 
-                <MenuItem href='/'>Numerimi i votave</MenuItem>
-                <MenuItem href="/dashboard">Paneli i kontrollit</MenuItem>
-                <MenuItem href="/komisioner">Lista e komisionerve</MenuItem>
+                <MenuItem component={Link} href='/'>Numerimi i votave</MenuItem>
+                <MenuItem component={Link} href="/dashboard">Statistikat e votave</MenuItem>
                 <Divider sx={{ my: 3 }} />
                 {isLoggedIn ? (
                   <MenuItem>
