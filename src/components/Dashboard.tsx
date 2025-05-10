@@ -20,7 +20,6 @@ import {
   TrendingUp,
   TrendingDown,
   Warning,
-  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { subscribeToGlobalCounts, subscribeToAllRegionCounts } from '../lib/firebase';
 import locationsData from '../data/kzazv2.json';
@@ -115,7 +114,7 @@ const Dashboard = () => {
       globalUnsubscribe();
       regionsUnsubscribe();
     };
-  }, []);
+  }, [isAuthorized]);
 
   if (!isAuthorized) {
     return (
