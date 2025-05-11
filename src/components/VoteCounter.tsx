@@ -94,7 +94,7 @@ const VoteCounter = () => {
 
     const browserInfo = getBrowserInfo();
 
-    const voteId = `vote_${type}_add_${Date.now()}_${selectedLocation.boxNumber}`;
+    const voteId = `vote_${type}_add_${Date.now()}_${selectedLocation.boxNumber.replace(/[\/\\]/g, '_')}`;
     const voteData = {
       boxNumber: selectedLocation.boxNumber,
       id: voteId,
@@ -138,7 +138,7 @@ const VoteCounter = () => {
 
     const browserInfo = getBrowserInfo();
 
-    const voteId = `vote_${type}_remove_${Date.now()}_${selectedLocation.boxNumber}`;
+    const voteId = `vote_${type}_remove_${Date.now()}_${selectedLocation.boxNumber.replace(/[\/\\]/g, '_')}`;
     const voteData = {
       boxNumber: selectedLocation.boxNumber,
       id: voteId,

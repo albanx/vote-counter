@@ -97,7 +97,9 @@ const validateLocationParams = (region?: string, city?: string, boxNumber?:strin
  * Uses batch operations for better offline support
  */
 const initializeCountDocuments = async (region: string, city: string, boxNumber: string) => {
-  if (!validateLocationParams(region, city, boxNumber)) {
+  const boxNumberDb = boxNumber.replace(/[\/\\]/g, '_');
+
+  if (!validateLocationParams(region, city, boxNumberDb)) {
     console.error('Invalid location parameters');
     return false;
   }
@@ -114,7 +116,7 @@ const initializeCountDocuments = async (region: string, city: string, boxNumber:
     // Get references with converters
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
-    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
 
     // Check if documents exist
@@ -162,20 +164,20 @@ const initializeCountDocuments = async (region: string, city: string, boxNumber:
  */
 export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
   const { region, city, userId, type, boxNumber } = vote;
-
-  if (!validateLocationParams(region, city, boxNumber)) {
+  const boxNumberDb = boxNumber.replace(/[\/\\]/g, '_');
+  if (!validateLocationParams(region, city, boxNumberDb)) {
     console.error('Invalid location parameters in vote');
     return false;
   }
 
   try {
     // Ensure count documents exist before batch operation
-    await initializeCountDocuments(region, city, vote.boxNumber);
+    await initializeCountDocuments(region, city, boxNumberDb);
 
     // Create a batch
     const batch = writeBatch(db);
-    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
-    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}/votes/${vote.id}`).withConverter(voteConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
@@ -221,18 +223,20 @@ export const saveIncrementVote = async (vote: Vote, incrementStep = 1) => {
  */
 export const saveDecrementVote = async (vote: Vote) => {
   const { region, city, userId, type, boxNumber } = vote;
-  if (!validateLocationParams(region, city, boxNumber)) {
+  const boxNumberDb = boxNumber.replace(/[\/\\]/g, '_');
+
+  if (!validateLocationParams(region, city, boxNumberDb)) {
     console.error('Invalid location parameters for decrement');
     return false;
   }
 
   try {
     // Ensure count documents exist
-    await initializeCountDocuments(region, city, boxNumber);
+    await initializeCountDocuments(region, city, boxNumberDb);
     
     // References with converters
-    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}/votes/${vote.id}`).withConverter(voteConverter);
-    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
+    const voteRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}/votes/${vote.id}`).withConverter(voteConverter);
+    const boxCountRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}`).withConverter(voteCountConverter);
     const locationCountRef = doc(db, `locationCounts/${region}/kzaz/${city}`).withConverter(voteCountConverter);
     const regionCountRef = doc(db, `regionCounts/${region}`).withConverter(voteCountConverter);
     const globalCountRef = doc(db, 'globalCounts/totals').withConverter(voteCountConverter);
@@ -308,17 +312,19 @@ export const subscribeToLocationBoxCounts = (
   callback: (counts: VoteCount) => void
 ): Promise<Unsubscribe> => {
   return new Promise((resolve, reject) => {
-    if (!validateLocationParams(region, city, boxNumber)) {
+    const boxNumberDb = boxNumber.replace(/[\/\\]/g, '_');
+
+    if (!validateLocationParams(region, city, boxNumberDb)) {
       console.error('Invalid location parameters for subscription');
       callback({ positive: 0, negative: 0, invalid: 0 });
       return reject(new Error('Invalid location parameters'));
     }
 
     // Initialize documents before setting up subscription
-    initializeCountDocuments(region, city, boxNumber)
+    initializeCountDocuments(region, city, boxNumberDb)
       .then(() => {
         // Use converter for type safety
-        const locationRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumber}`).withConverter(voteCountConverter);
+        const locationRef = doc(db, `locationCounts/${region}/kzaz/${city}/box/${boxNumberDb}`).withConverter(voteCountConverter);
 
         const unsubscribe = onSnapshot(
           locationRef,
