@@ -39,7 +39,7 @@ type SortColumn = 'region' | 'positive' | 'negative' | 'invalid' | 'total';
 type SortDirection = 'asc' | 'desc';
 
 // Base64 encoded authorized emails array
-const ENCODED_EMAILS = 'WyJhcmxpbmRfcW9yaTExQHlhaG9vLmNvbSIsImFsYmFucGlyYUB5bWFpbC5jb20iLCJhbGJhbnhAZ21haWwuY29tIiwiYWxnZXJ0QHByb3Rvbm1haWwuY29tIiwiaXJkaWlzbWFpbGkxMUBwcm90b25tYWlsLmNvbSIsInBycm9uaWRhbmllbDE2QGdtYWlsLmNvbSJd';
+const ENCODED_EMAILS = 'WyJhcmxpbmRfcW9yaTExQHlhaG9vLmNvbSIsImFsYmFucGlyYUB5bWFpbC5jb20iLCJhbGJhbnhAZ21haWwuY29tIiwiYWxnZXJ0QHByb3Rvbm1haWwuY29tIiwiaXJkaWlzbWFpbGkxMUBwcm90b25tYWlsLmNvbSIsInBycm9uaWRhbmllbDE2QGdtYWlsLmNvbSIsIm1pcmVsYXJ1a29AeWFob28uY29tIl0=';
 
 // Decode the base64 string and parse JSON to get the array
 const getAuthorizedEmails = (): string[] => {
