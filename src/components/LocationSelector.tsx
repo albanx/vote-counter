@@ -89,7 +89,7 @@ const LocationSelector = () => {
       </FormControl>
       <FormControl fullWidth disabled={!region}>
         <TextField
-          type="number"
+          type="text"
           label="Numri i Kutisë"
           fullWidth
           value={boxNumber}
